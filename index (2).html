@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Curaden AI Assistant</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --teal: #0d4f4f;
+    --teal-mid: #1a6b6b;
+    --teal-light: #e8f5f5;
+    --teal-accent: #2db8b8;
+    --white: #ffffff;
+    --gray-50: #f8fafa;
+    --gray-100: #eef2f2;
+    --gray-200: #d4dede;
+    --gray-400: #8aa5a5;
+    --gray-600: #4a6363;
+    --gray-800: #1e3535;
+    --text: #1e3535;
+    --text-muted: #5a7878;
+    --bubble-user: #0d4f4f;
+    --bubble-bot: #f0f8f8;
+    --radius: 18px;
+    --radius-sm: 10px;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--gray-50);
+    color: var(--text);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    font-size: 14px;
+  }
+
+  /* Header */
+  .header {
+    background: var(--teal);
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+    box-shadow: 0 2px 12px rgba(13,79,79,0.25);
+  }
+  .header-logo {
+    width: 36px;
+    height: 36px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .header-info h1 {
+    font-size: 15px;
+    font-weight: 600;
+    color: #fff;
+    letter-spacing: -0.2px;
+  }
+  .header-info p {
+    font-size: 11px;
+    color: rgba(255,255,255,0.6);
+    margin-top: 1px;
+  }
+  .header-badge {
+    margin-left: auto;
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: rgba(255,255,255,0.85);
+    font-size: 10px;
+    font-weight: 500;
+    padding: 4px 10px;
+    border-radius: 20px;
+    letter-spacing: 0.3px;
+  }
+
+  /* Topics bar */
+  .topics-bar {
+    background: var(--white);
+    border-bottom: 1px solid var(--gray-200);
+    padding: 10px 16px;
+    display: flex;
+    gap: 7px;
+    overflow-x: auto;
+    flex-shrink: 0;
+    scrollbar-width: none;
+  }
+  .topics-bar::-webkit-scrollbar { display: none; }
+  .topic-chip {
+    background: var(--gray-100);
+    border: 1px solid var(--gray-200);
+    color: var(--gray-600);
+    font-size: 11.5px;
+    font-weight: 500;
+    padding: 5px 12px;
+    border-radius: 20px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .topic-chip:hover {
+    background: var(--teal-light);
+    border-color: var(--teal-accent);
+    color: var(--teal);
+  }
+
+  /* Chat area */
+  .chat-area {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--gray-200) transparent;
+  }
+
+  /* Welcome */
+  .welcome {
+    text-align: center;
+    padding: 24px 16px 8px;
+  }
+  .welcome-icon {
+    width: 56px;
+    height: 56px;
+    background: var(--teal);
+    border-radius: 16px;
+    margin: 0 auto 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+  }
+  .welcome h2 {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--teal);
+    margin-bottom: 6px;
+  }
+  .welcome p {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.6;
+    max-width: 320px;
+    margin: 0 auto;
+  }
+
+  /* Quick questions */
+  .quick-questions {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    margin-top: 6px;
+  }
+  .quick-q {
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    color: var(--text);
+    font-size: 12.5px;
+    padding: 10px 14px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    text-align: left;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .quick-q:hover {
+    background: var(--teal-light);
+    border-color: var(--teal-accent);
+    color: var(--teal);
+  }
+  .quick-q::before {
+    content: "→";
+    color: var(--teal-accent);
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+
+  /* Messages */
+  .msg-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    animation: fadeUp 0.25s ease forwards;
+    opacity: 0;
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .msg-row.user { flex-direction: row-reverse; }
+
+  .avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .avatar.bot { background: var(--teal); color: #fff; }
+  .avatar.user { background: var(--gray-200); color: var(--teal); }
+
+  .bubble {
+    max-width: 78%;
+    padding: 11px 15px;
+    border-radius: var(--radius);
+    line-height: 1.6;
+    font-size: 13.5px;
+  }
+  .bubble.bot {
+    background: var(--bubble-bot);
+    border: 1px solid var(--gray-200);
+    border-bottom-left-radius: 6px;
+    color: var(--text);
+  }
+  .bubble.user {
+    background: var(--bubble-user);
+    color: #fff;
+    border-bottom-right-radius: 6px;
+  }
+  .bubble strong { font-weight: 600; }
+  .bubble ul { padding-left: 16px; margin: 6px 0; }
+  .bubble li { margin-bottom: 3px; }
+
+  /* Typing indicator */
+  .typing-dots {
+    display: flex;
+    gap: 4px;
+    padding: 4px 2px;
+    align-items: center;
+  }
+  .typing-dots span {
+    width: 7px;
+    height: 7px;
+    background: var(--teal-accent);
+    border-radius: 50%;
+    animation: bounce 1.2s infinite;
+  }
+  .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes bounce {
+    0%, 60%, 100% { transform: translateY(0); }
+    30% { transform: translateY(-6px); }
+  }
+
+  /* Source tags */
+  .source-tags {
+    margin-top: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+  .source-tag {
+    font-size: 10.5px;
+    background: rgba(13,79,79,0.08);
+    color: var(--teal);
+    border: 1px solid rgba(13,79,79,0.15);
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 500;
+  }
+
+  /* Input */
+  .input-area {
+    background: var(--white);
+    border-top: 1px solid var(--gray-200);
+    padding: 12px 14px;
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+  .input-wrap {
+    flex: 1;
+    background: var(--gray-50);
+    border: 1.5px solid var(--gray-200);
+    border-radius: 14px;
+    display: flex;
+    align-items: flex-end;
+    transition: border-color 0.2s;
+  }
+  .input-wrap:focus-within {
+    border-color: var(--teal-accent);
+    background: var(--white);
+  }
+  textarea {
+    flex: 1;
+    border: none;
+    background: transparent;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13.5px;
+    color: var(--text);
+    padding: 10px 14px;
+    resize: none;
+    outline: none;
+    line-height: 1.5;
+    max-height: 100px;
+    min-height: 42px;
+  }
+  textarea::placeholder { color: var(--gray-400); }
+
+  .send-btn {
+    width: 40px;
+    height: 40px;
+    background: var(--teal);
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.15s, transform 0.1s;
+  }
+  .send-btn:hover { background: var(--teal-mid); }
+  .send-btn:active { transform: scale(0.94); }
+  .send-btn:disabled { background: var(--gray-200); cursor: not-allowed; }
+  .send-btn svg { width: 18px; height: 18px; fill: #fff; }
+
+  .disclaimer {
+    text-align: center;
+    font-size: 10px;
+    color: var(--gray-400);
+    padding: 4px 0 2px;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-logo">🦷</div>
+  <div class="header-info">
+    <h1>Curaden AI Assistant</h1>
+    <p>HR · IT · Onboarding</p>
+  </div>
+  <div class="header-badge">Beta</div>
+</div>
+
+<div class="topics-bar">
+  <button class="topic-chip" onclick="askTopic('What are the working hours at Curaden?')">🕐 Working hours</button>
+  <button class="topic-chip" onclick="askTopic('How do I request vacation days?')">🏖️ Vacation</button>
+  <button class="topic-chip" onclick="askTopic('How do I connect to the VPN?')">🔒 IT & VPN</button>
+  <button class="topic-chip" onclick="askTopic('What is the onboarding process for new employees?')">👋 Onboarding</button>
+  <button class="topic-chip" onclick="askTopic('What tools does Curaden use?')">🛠️ Tools</button>
+  <button class="topic-chip" onclick="askTopic('Who do I contact for payroll questions?')">💶 Payroll</button>
+  <button class="topic-chip" onclick="askTopic('What is the AI usage policy?')">🤖 AI Policy</button>
+</div>
+
+<div class="chat-area" id="chatArea">
+  <div class="welcome">
+    <div class="welcome-icon">🤖</div>
+    <h2>Hello! I'm your Curaden AI Assistant</h2>
+    <p>Ask me anything about HR policies, IT support, or your onboarding. I'm here to help you find answers fast.</p>
+    <div class="quick-questions">
+      <button class="quick-q" onclick="askTopic('How many vacation days do I get per year?')">How many vacation days do I get per year?</button>
+      <button class="quick-q" onclick="askTopic('What laptop setup does IT provide for new employees?')">What laptop setup does IT provide?</button>
+      <button class="quick-q" onclick="askTopic('What is the expense reimbursement process?')">How does expense reimbursement work?</button>
+      <button class="quick-q" onclick="askTopic('Who is my HR contact person?')">Who is my HR contact person?</button>
+    </div>
+  </div>
+</div>
+
+<div class="input-area">
+  <div class="input-wrap">
+    <textarea id="userInput" placeholder="Ask about HR, IT, or onboarding…" rows="1"
+      onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMessage()}"
+      oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
+  </div>
+  <button class="send-btn" id="sendBtn" onclick="sendMessage()">
+    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <path d="M2 21l21-9L2 3v7l15 2-15 2z"/>
+    </svg>
+  </button>
+</div>
+<div class="disclaimer">AI answers are based on Curaden internal documents. Always verify with HR or IT for critical decisions.</div>
+
+<script>
+const KNOWLEDGE_BASE = `
+=== CURADEN AG — INTERNAL KNOWLEDGE BASE ===
+Last updated: March 2026 | Confidential: Internal use only
+
+--- HR POLICIES ---
+
+WORKING HOURS:
+- Standard working hours: Monday–Friday, 08:00–17:00 (Switzerland HQ, Kriens)
+- Flexible working: Employees may adjust start/end times between 07:00 and 19:00, core hours are 09:00–16:00
+- Remote work: Up to 2 days per week after 3-month probation period, requires manager approval
+- Part-time arrangements must be agreed in writing with HR and line manager
+
+VACATION & LEAVE:
+- Annual leave entitlement: 25 working days per year (employees up to age 50), 30 days (age 50+)
+- New employees: Vacation is pro-rated in the first year based on start date
+- Public holidays: All Swiss federal holidays plus Lucerne cantonal holidays apply
+- Vacation requests must be submitted via Haiilo HR module at least 2 weeks in advance
+- Unused vacation: Maximum 5 days may be carried over to the following year (must be used by March 31)
+- Sick leave: Provide a medical certificate after 3 consecutive sick days; notify your manager on the first day of absence
+
+EXPENSE REIMBURSEMENT:
+- Business expenses must be submitted within 30 days via the Concur expense system
+- Meals (business travel): Up to CHF 40 per meal (lunch), CHF 70 per dinner with client
+- Hotel: Pre-approval required for stays over CHF 200/night
+- Flights: Economy class for flights under 6 hours; business class requires CFO approval
+- Receipts required for all expenses over CHF 25
+- Contact: Dominic (Finance) at finance@curaden.com for expense queries
+
+PAYROLL & COMPENSATION:
+- Salaries are paid on the 25th of each month
+- Payslips are available via the Haiilo HR portal (HR Apps > My Payslips)
+- For payroll queries contact: payroll@curaden.com or Raphael Schaerer (HR Director)
+- Annual salary reviews occur in December, effective February of the following year
+- 13th month salary is paid in December
+
+BENEFITS:
+- Health insurance: Curaden contributes CHF 100/month toward supplementary health insurance
+- Pension: BVG occupational pension scheme — Curaden contributes 60%, employee 40%
+- SBB GA (general travel pass): Available for employees with >50% travel requirements, apply via HR
+- Curaprox product discount: 40% discount on all Curaprox products via the internal webshop
+- Lunch subsidy: CHF 6/day at Curaden canteen (Kriens HQ only)
+
+PERFORMANCE REVIEWS:
+- Annual performance review: January–February each year
+- Mid-year check-in: July (informal, with line manager)
+- New employees: 3-month and 6-month probation reviews
+- Use the performance review templates in Haiilo (HR Apps > Performance)
+
+HR CONTACTS:
+- Raphael Schaerer — HR Director: raphael.schaerer@curaden.com
+- HR Generalist (recruitment & onboarding): hr@curaden.com
+- Works council representative: contact via Haiilo directory
+
+REMOTE WORK POLICY:
+- Home office equipment: Curaden provides a laptop; monitors and peripherals are the employee's responsibility for home office
+- Internet allowance: CHF 30/month home office supplement for full home office arrangements
+- Data security: Never use personal cloud storage (Dropbox personal, Google Drive personal) for company data
+- All data must remain within approved enterprise tools (Haiilo, Microsoft 365, SAP)
+
+--- IT POLICIES ---
+
+EQUIPMENT & SETUP:
+- New employees receive: MacBook Pro 14" (default) or Windows ThinkPad (on request), iPhone SE (if role requires), accessories kit
+- Equipment requests: Submit via IT Service Desk ticket in Haiilo (IT Apps > Service Desk)
+- Personal devices: BYOD is not permitted for accessing confidential company data
+- Lost/stolen equipment: Report immediately to IT (it@curaden.com) and your manager
+
+VPN & REMOTE ACCESS:
+- VPN: Curaden uses Cisco AnyConnect VPN
+- Download: Available from IT intranet page (IT Apps > Downloads)
+- Credentials: Your standard Curaden email and password
+- VPN is required for: accessing SAP, internal file shares, and any Tier 2/3 data from outside HQ
+- Issues with VPN: Contact IT helpdesk: it@curaden.com or ext. 1100
+
+PASSWORDS & SECURITY:
+- Passwords must be minimum 12 characters, include uppercase, lowercase, number, and symbol
+- Password change required every 90 days (system will prompt automatically)
+- Never share your password — IT will NEVER ask for your password via email or phone
+- Use the Curaden Bitwarden enterprise password manager (license provided by IT)
+- Multi-factor authentication (MFA) is mandatory for all enterprise accounts
+
+APPROVED TOOLS & SOFTWARE:
+- Productivity: Haiilo (intranet), Microsoft 365, SAP S/4HANA (from April 2026)
+- Communication: Microsoft Teams, Outlook
+- AI Tools (enterprise, approved): Claude (Anthropic), Google Gemini — enterprise licenses only
+- Project management: Asana (available on request via IT)
+- File storage: OneDrive (Microsoft 365) — do NOT use personal Dropbox or Google Drive
+- Shadow AI policy: Personal ChatGPT, Claude.ai (free), or any non-enterprise AI tool is NOT permitted with company data
+
+IT HELPDESK:
+- Email: it@curaden.com
+- Phone extension: 1100 (Kriens HQ)
+- Self-service portal: Haiilo > IT Apps > Service Desk
+- Response times: Critical issues (system down) — 2 hrs; High — 4 hrs; Normal — 1 business day
+- IT contact: Thomas Husi (Head of IT): thomas.husi@curaden.com
+
+--- ONBOARDING GUIDE ---
+
+BEFORE YOUR FIRST DAY:
+- You will receive a welcome email with your laptop delivery date and IT setup instructions
+- Install Cisco AnyConnect VPN and log in with your credentials (sent by IT)
+- Download Microsoft Teams and Outlook using your @curaden.com email
+- Set up MFA on your account (instructions in the welcome email)
+
+FIRST DAY:
+- Report to reception at Curaden HQ, Untermattweg 8, 6010 Kriens, Switzerland
+- Your manager will meet you and take you to your workspace
+- IT will have your laptop and badge ready; please bring your passport for ID verification
+- 09:00: Welcome meeting with HR (Raphael Schaerer)
+- 10:00: Office tour and team introductions
+- 11:00: IT setup session with Thomas Husi's team
+- 14:00: Lunch with your team
+- 15:00: Introduction to Haiilo intranet and key systems
+
+FIRST WEEK:
+- Complete mandatory compliance training (available in Haiilo > Academy > Mandatory Training)
+  * Data Protection & GDPR (30 min)
+  * Code of Conduct (20 min)
+  * AI Usage Policy (15 min) — NEW from March 2026
+  * Health & Safety (25 min)
+- Set up your Haiilo profile with photo and bio
+- Schedule 1:1 introductory meetings with your key stakeholders (your manager will provide a list)
+- Join your team's Microsoft Teams channels
+
+FIRST MONTH:
+- 3-month onboarding plan agreed with your manager (template in Haiilo > HR Apps > Onboarding)
+- Shadow colleagues in relevant departments
+- Attend your first Curaden Lunch & Learn (held every Friday 12:00–13:00, Kriens)
+- Register for any relevant Curaden Academy training programs
+
+KEY SYSTEMS TO LEARN:
+- Haiilo: Company intranet, HR portal, document library
+- Microsoft Teams & Outlook: Communication
+- SAP S/4HANA: ERP system (Finance, Supply Chain, HR data) — training provided by IT
+- Asana: Project management (if applicable to your role)
+- Curaprox product training: Available in Curaden Academy (all employees complete "Curaprox Basics")
+
+CURADEN CULTURE:
+- We operate in 90+ countries with 40+ nationalities — respect and inclusion are core values
+- English is the working language at HQ; German is common in local Swiss teams
+- "Prevention is better than treatment" — this principle applies to everything we do, not just dental care
+- AI is embraced company-wide: "Use AI 100 times a day — like brushing your teeth" (company mantra, 2026)
+- Dress code: Smart casual; client-facing roles follow business casual
+
+CONTACT DIRECTORY (KEY PEOPLE):
+- CEO: Christine Breitschmid
+- COO: Stefan Vogler — stefan.vogler@curaden.com
+- HR Director: Raphael Schaerer — raphael.schaerer@curaden.com
+- Head of IT: Thomas Husi — thomas.husi@curaden.com
+- Finance/Governance: Dominic — finance@curaden.com
+- Board: Marcel — board@curaden.com
+- General HR enquiries: hr@curaden.com
+- IT Helpdesk: it@curaden.com | ext. 1100
+`;
+
+const SYSTEM_PROMPT = `You are the Curaden AI Assistant, an internal chatbot for Curaden AG employees. You have access to the Curaden internal knowledge base containing HR policies, IT guidelines, and onboarding information.
+
+Your job is to answer employee questions accurately, warmly, and concisely based ONLY on the information in the knowledge base provided below.
+
+Rules:
+- Always answer based on the knowledge base. If the answer is not in the knowledge base, say so honestly and suggest who to contact.
+- Be friendly, professional, and concise. Use bullet points for lists. Keep answers focused.
+- When relevant, mention who the employee should contact for follow-up (name + email).
+- Mention the source category at the end (e.g. "Source: HR Policy" or "Source: IT Guidelines").
+- Never make up information not in the knowledge base.
+- Respond in the same language the user writes in (English or German).
+
+KNOWLEDGE BASE:
+${KNOWLEDGE_BASE}`;
+
+let conversationHistory = [];
+
+function addMessage(content, role, sources) {
+  const chatArea = document.getElementById('chatArea');
+  const welcome = chatArea.querySelector('.welcome');
+  if (welcome) welcome.remove();
+
+  const row = document.createElement('div');
+  row.className = `msg-row ${role}`;
+
+  const avatar = document.createElement('div');
+  avatar.className = `avatar ${role}`;
+  avatar.textContent = role === 'bot' ? '🤖' : '👤';
+
+  const bubble = document.createElement('div');
+  bubble.className = `bubble ${role}`;
+
+  // Simple markdown-like rendering
+  let html = content
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/^• (.+)$/gm, '<li>$1</li>')
+    .replace(/^- (.+)$/gm, '<li>$1</li>')
+    .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
+    .replace(/\n\n/g, '<br><br>')
+    .replace(/\n/g, '<br>');
+
+  bubble.innerHTML = html;
+
+  if (sources && sources.length > 0) {
+    const tags = document.createElement('div');
+    tags.className = 'source-tags';
+    sources.forEach(s => {
+      const tag = document.createElement('span');
+      tag.className = 'source-tag';
+      tag.textContent = '📄 ' + s;
+      tags.appendChild(tag);
+    });
+    bubble.appendChild(tags);
+  }
+
+  row.appendChild(avatar);
+  row.appendChild(bubble);
+  chatArea.appendChild(row);
+  chatArea.scrollTop = chatArea.scrollHeight;
+}
+
+function addTypingIndicator() {
+  const chatArea = document.getElementById('chatArea');
+  const row = document.createElement('div');
+  row.className = 'msg-row bot';
+  row.id = 'typingRow';
+
+  const avatar = document.createElement('div');
+  avatar.className = 'avatar bot';
+  avatar.textContent = '🤖';
+
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble bot';
+  bubble.innerHTML = '<div class="typing-dots"><span></span><span></span><span></span></div>';
+
+  row.appendChild(avatar);
+  row.appendChild(bubble);
+  chatArea.appendChild(row);
+  chatArea.scrollTop = chatArea.scrollHeight;
+}
+
+function removeTypingIndicator() {
+  const el = document.getElementById('typingRow');
+  if (el) el.remove();
+}
+
+async function sendMessage(overrideText) {
+  const input = document.getElementById('userInput');
+  const sendBtn = document.getElementById('sendBtn');
+  const text = overrideText || input.value.trim();
+  if (!text) return;
+
+  input.value = '';
+  input.style.height = 'auto';
+  sendBtn.disabled = true;
+
+  addMessage(text, 'user');
+  conversationHistory.push({ role: 'user', content: text });
+
+  addTypingIndicator();
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: SYSTEM_PROMPT,
+        messages: conversationHistory
+      })
+    });
+
+    const data = await response.json();
+    removeTypingIndicator();
+
+    if (data.content && data.content[0]) {
+      const reply = data.content[0].text;
+      conversationHistory.push({ role: 'assistant', content: reply });
+
+      // Extract source tag from reply
+      const sourceMatch = reply.match(/Source:\s*([^\n]+)/i);
+      const sources = sourceMatch ? [sourceMatch[1].trim()] : [];
+      const cleanReply = reply.replace(/Source:\s*[^\n]+/i, '').trim();
+
+      addMessage(cleanReply, 'bot', sources);
+    } else {
+      addMessage("Sorry, I couldn't get a response. Please try again or contact HR or IT directly.", 'bot', []);
+    }
+  } catch (err) {
+    removeTypingIndicator();
+    addMessage("I'm having trouble connecting right now. Please contact hr@curaden.com or it@curaden.com directly.", 'bot', []);
+  }
+
+  sendBtn.disabled = false;
+  input.focus();
+}
+
+function askTopic(text) {
+  sendMessage(text);
+}
+</script>
+</body>
+</html>
